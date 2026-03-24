@@ -33,6 +33,8 @@ async def show_tasks(session: Session=Depends(get_session)):
 @app.get("/tasks/{task_id}")
 async def show_task(task_id: int, session: Session=Depends(get_session)):
     task = session.get(Task, task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail=f"No task with {task_id} name")
     return task
 
 # delete task
@@ -67,6 +69,8 @@ async def show_projects(session: Session=Depends(get_session)):
 @app.get("/projects/{project_id}")
 async def show_project(project_id: int, session: Session=Depends(get_session)):
     project = session.get(Project, project_id)
+    if not project:
+        raise HTTPException(status_code=404, detail=f"No project with {project_id} name")
     return project
 
 # delete project
@@ -78,6 +82,34 @@ async def delete_project(project_id: int, session: Session=Depends(get_session))
     session.delete(item)
     session.commit()
     return { "ok": True }
+
+
+# combined Task and Projects logic
+@app.post("/projects/{project_id}/task/{task_id}")
+async def add_task_project(project_id: int, task_id: int, session: Session=Depends(get_session)):
+    task_item = session.get(Task, task_id)
+    project_item = session.get(Project, project_id)
+    if not task_item or not project_item:
+        raise HTTPException(status_code=404, detail="Not found")
+    project_item.tasks.append(task_item)
+    session.add(project_item)
+    session.commit()
+    return project_item
+
+# find tasks by project
+@app.get("/projects/{project_id}/tasks")
+def get_project_tasks(project_id: int, session: Session=Depends(get_session)):
+    project_by_task = session.get(Project, project_id)
+    if not project_by_task:
+        raise HTTPException(status_code=404, detail=f"Could not find {project_id}")
+    return project_by_task.tasks
+
+# find task by tag
+@app.get("/tasks/tag/{tag_name}")
+def search_task_tag(tag_name: str, session: Session=Depends(get_session)):
+    to_find = select(Task).where(Task.tags.contains(tag_name))
+    results = session.exec(to_find).all()
+    return results
 
 
 
