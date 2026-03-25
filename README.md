@@ -19,7 +19,7 @@ A containerized FastAPI application for managing projects and tasks with a Many-
 
 ## 🚀 How to Run
 ### Prerequisites
-- <a href="https://www.docker.com/products/docker-desktop/">Docker Desktop</a> installed and running. installed and running.
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running.
 
 ### Quick Start
 1. Clone the repository to your local machine.
@@ -48,3 +48,66 @@ Once the logs show Uvicorn running on [http://0.0.0.0:8000](http://0.0.0.0:8000)
 2. Create a Task: `POST /tasks` (add tags like "urgent,work")
 3. Link Task to Project: `POST /projects/{project_id}/task/{task_id}`
 4. View Project Progress: `GET /projects/{project_id}/tasks`
+
+## 🕹️ Detailed Start Guide (Testing the API)
+
+Once your containers are running, the best way to test the system is through the **Interactive Swagger UI**.
+
+### 1. Open the API Lab
+Navigate to [http://localhost:8000/docs](http://localhost:8000/docs) in your browser. This interface allows you to send real data to your database without writing any frontend code.
+
+### 2. Step-by-Step Walkthrough
+
+#### **Step A: Create a Project**
+* Find the **POST `/projects`** endpoint and click **"Try it out"**.
+* Use this example JSON and click **Execute**:
+    ```json
+    {
+      "name": "Apollo 11",
+      "budget": 50000,
+      "description": "Moon landing mission",
+      "hours_used": 0
+    }
+    ```
+* **Note:** Keep track of the `"id"` in the response (usually `1`).
+
+#### **Step B: Create a Task**
+* Find the **POST `/tasks`** endpoint and click **"Try it out"**.
+* Use this example JSON and click **Execute**:
+    ```json
+    {
+      "title": "Build Rocket",
+      "description": "Assemble the main boosters",
+      "tags": "engineering,urgent"
+    }
+    ```
+* **Note:** Keep track of this `"id"` as well (usually `1`).
+
+#### **Step C: Link the Task to the Project**
+* Find the **POST `/projects/{project_id}/task/{task_id}`** endpoint.
+* Enter `1` for the project ID and `1` for the task ID.
+* Click **Execute**. The database now creates a relationship between these two items.
+
+#### **Step D: Verify the Relationship**
+* Go to **GET `/projects/{project_id}/tasks`**.
+* Enter `1` and click **Execute**. 
+* You will see your "Build Rocket" task appearing inside the project's task list!
+
+---
+
+## 🗺️ API Reference Cheat Sheet
+
+| Feature | Endpoint | Method | Purpose |
+| :--- | :--- | :--- | :--- |
+| **Projects** | `/projects` | `POST` / `GET` | Create or list all projects. |
+| **Tasks** | `/tasks` | `POST` / `GET` | Create or list all tasks. |
+| **Linking** | `/projects/{pid}/task/{tid}` | `POST` | Connect a task to a project. |
+| **Filtering** | `/projects/{pid}/tasks` | `GET` | View all tasks for a specific project. |
+| **Tag Search** | `/tasks/tag/{tag_name}` | `GET` | Search tasks by a specific tag (e.g., "urgent"). |
+
+---
+
+## 🛠️ Troubleshooting Docker
+* **Port Conflict:** If you get an error saying `port 8000 is already in use`, make sure you don't have a local `uvicorn` process running outside of Docker.
+* **Database Reset:** To wipe the database and start fresh, run:
+  `docker-compose down -v` (The `-v` removes the stored data volume).
