@@ -1,0 +1,25 @@
+services:
+  # The Database Service
+  db:
+    image: postgres:15
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=project_db
+    # This keeps the data safe even if the container stops
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # FastAPI App Service
+  app:
+    build: .
+    restart: on-failure
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://user:password@db:5432/project_db
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:
